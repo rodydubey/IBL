@@ -1,0 +1,11 @@
+<additionals>
+    <e1Detector id="det_0" lane="-840_0" pos="25" freq="10000" file="loopDetectors.out.xml" />
+    <e1Detector id="det_1" lane="-840_0" pos="50" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_2" lane="-840_0" pos="75" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_3" lane="-840_0" pos="100" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_4" lane="-840_0" pos="125" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_5" lane="-840_0" pos="150" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_6" lane="-840_0" pos="175" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_7" lane="-840_0" pos="200" freq="10000" file="loopDetectors.out.xml" />
+	<e1Detector id="det_8" lane="-840_0" pos="225" freq="10000" file="loopDetectors.out.xml" />
+</additionals>

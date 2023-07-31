@@ -1,0 +1,16 @@
+<configuration>
+    <input>
+		<additional-files value="loopDetectors.add.xml"/>
+		<net-file value="SimpleRandom.net.xml"/>
+        <route-files value="car.rou.xml,bus.rou.xml"/>
+    </input>
+    <process>
+        <routing-algorithm value="astar"/>
+        <device.rerouting.probability value="1"/>
+        <device.rerouting.period value="1"/>
+    </process>
+	<processing>
+		<lateral-resolution value="0.1"/>
+	</processing>
+</configuration>
+
