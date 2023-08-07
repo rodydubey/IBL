@@ -8,3 +8,29 @@ C:\\Python_3.9.7\\lib\\site-packages\\sumo\\tools\\randomTrips.py -n SimpleRando
 duarouter -n SimpleRandom.net.xml --route-files SimpleRandom.trips.xml -o SimpleRandom.rou.xml --ignore-errors
 
 duarouter -n SimpleRandom.net.xml --route-files SimpleRandom.bus.xml -o SimpleRandom_Bus.rou.xml --ignore-errors
+
+
+To update Activity Gen
+
+It requires four inputs from the network files. 
+1. <streets>
+2. <cityGates> It is done manually for now. 
+3. <busStations>
+4. <busLines>
+
+Number 1,2, and 4 are generated using the function "writeActivityGenSupportingData" in writeActivityGenSupportingData.py file. 
+Bus lines are hardcoded in the file. Probably don't touch it. Routes.json file should exist along with the network. Few parameters
+such as rate of bus line can be edited in the script. 
+The output file activitygenSupport.xml will create 1,3,4. Copy paste them into activitygen.stat.xml
+Then rerun the activityGen to create correct bus trips.
+Then run the writeActivityGenSupportingData.py with the correct test_trips.rou.xml. It will generate vType for the busStops. 
+Remove the end tag of <\vType>. Check busStop.add.xml file for correct nomenclature.
+In the busStop.add.xml file add <busStop> line from the activitygenSupport.xml and also the vType. 
+
+Now, believe in God, and see if it works. 
+
+
+
+
+
+

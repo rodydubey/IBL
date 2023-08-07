@@ -4,6 +4,10 @@ import numpy as np
 import os, sys
 from addLoopDetectors import loopDetector
 from generateGraph import generateGraph
+from utils import getEdgesBetweenOD
+from sumolib import net
+
+from writeActivityGenSupportingData import writeActivityGenSupportingData
 """
 Configure various parameters of SUMO
 """
@@ -44,14 +48,21 @@ for edge_id in nEdges:
     if edge_id.find("_") == -1: # filters edges from internal edges
         edge_list.append(edge_id)
 
+
+network = net.readNet(networkFileName)
+
+###uncomment below function everytime you need to generate new activityGen related files 
+writeActivityGenSupportingData(traci,edge_list)
+###uncomment below function everytime you need to generate new activityGen related files 
+
 ###uncomment below function everytime you need to generate new Loop  detector additional file
 # loopDetector(traci,edge_list,loopDetectorFileName)
 ###uncomment below function everytime you need to generate new Loop  detector additional file
 
-generateGraph(traci,edge_list,networkFileName)
+# generateGraph(traci,edge_list,network)
 
-
-while step < 1000:
+getEdgesBetweenOD(network)
+while step < 100000:
     traci.simulationStep()
     # nLanes = traci.lane.getIDList()
     # nEdges = traci.edge.getIDList()
@@ -67,3 +78,4 @@ while step < 1000:
     step += 1
 
 traci.close()
+

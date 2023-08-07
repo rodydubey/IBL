@@ -5,8 +5,7 @@ import traci
 import csv
 from sumolib import net
 
-def generateGraph(traci,edge_list,filename):
-    network = net.readNet(filename)
+def generateGraph(traci,edge_list,network):
     graphNodeList = []
     graphEdgeList = []
     for edge_id in edge_list:
