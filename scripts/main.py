@@ -13,6 +13,12 @@ Configure various parameters of SUMO
 """
 
 withGUI = True
+
+if not withGUI:
+    try:
+        import libsumo as traci
+    except:
+        pass
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -37,11 +43,13 @@ sumoCMD = ["-c", sumoConfig] + sumoCMD
 loopDetectorFileName = "../sumo_config/loopDetectors.add.xml"
 networkFileName = '../sumo_config/SimpleRandom.net.xml'
 
-traci.start([sumoBinary] + sumoCMD)
+# traci.start([sumoBinary] + sumoCMD)
 step = 0
 edge_list = [] # list of all edges
 
-nEdges = traci.edge.getIDList()
+network = net.readNet(networkFileName)
+
+nEdges = [e.getID() for e in network.getEdges()]
 
 # Write additional file with loop detectors if the file does not exist
 for edge_id in nEdges:   
@@ -49,10 +57,9 @@ for edge_id in nEdges:
         edge_list.append(edge_id)
 
 
-network = net.readNet(networkFileName)
 
 ###uncomment below function everytime you need to generate new activityGen related files 
-writeActivityGenSupportingData(traci,edge_list)
+writeActivityGenSupportingData(networkFileName,edge_list)
 ###uncomment below function everytime you need to generate new activityGen related files 
 
 ###uncomment below function everytime you need to generate new Loop  detector additional file
@@ -62,20 +69,20 @@ writeActivityGenSupportingData(traci,edge_list)
 # generateGraph(traci,edge_list,network)
 
 getEdgesBetweenOD(network)
-while step < 100000:
-    traci.simulationStep()
-    # nLanes = traci.lane.getIDList()
-    # nEdges = traci.edge.getIDList()
+# while step < 100:
+#     traci.simulationStep()
+#     # nLanes = traci.lane.getIDList()
+#     # nEdges = traci.edge.getIDList()
 
-    # for edge_id in nEdges:   
-    # if edge_id.find("_") == -1: # filters edges from internal edges
-    #         edge_list.append(edge_id)
+#     # for edge_id in nEdges:   
+#     # if edge_id.find("_") == -1: # filters edges from internal edges
+#     #         edge_list.append(edge_id)
 
-    # for edge_id in edge_list:
-    #     lane_id = edge_id + "_0"
-    #     length = traci.lane.getLength(lane_id)
-    #     print(lane_id,"--",length)
-    step += 1
+#     # for edge_id in edge_list:
+#     #     lane_id = edge_id + "_0"
+#     #     length = traci.lane.getLength(lane_id)
+#     #     print(lane_id,"--",length)
+#     step += 1
 
-traci.close()
+# traci.close()
 

@@ -1,5 +1,6 @@
 from lxml import etree as ET
 from sumolib import checkBinary
+import sumolib
 import os
 import sys
 import numpy as np
@@ -8,12 +9,14 @@ import csv
 import random
 import json
  
-def writeActivityGenSupportingData(traci,edge_list):
+def writeActivityGenSupportingData(netFileName, edge_list):
    
     #Write streets info 
     # <streets>
 		# <street edge="e01t11" population="10" workPosition="100" />
     # </streets>
+    network = sumolib.net.readNet(netFileName)
+
     xmlfile = "../sumo_config/activitygen_base.stat.xml"
     stattree = ET.parse(xmlfile)
     city = stattree.getroot()
@@ -43,7 +46,8 @@ def writeActivityGenSupportingData(traci,edge_list):
             #<busStation id="1" edge="e11t12" pos="10" />
         #</busStations>
         lane_id = edge_id + "_0"
-        edge_length = traci.lane.getLength(lane_id)        
+        lane = network.getLane(lane_id)
+        edge_length = lane.getLength()        
         s_elem2 = ET.SubElement(busStations_data, 'busStation')
         s_elem2.set('id', str(bus_station_counter))
         s_elem2.set('edge', edge_id)
