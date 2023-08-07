@@ -14,7 +14,12 @@ def writeActivityGenSupportingData(traci,edge_list):
     # <streets>
 		# <street edge="e01t11" population="10" workPosition="100" />
     # </streets>
-    
+    xmlfile = "../sumo_config/activitygen_base.stat.xml"
+    stattree = ET.parse(xmlfile)
+    city = stattree.getroot()
+    streets = city.find('streets')
+    city.remove(streets)
+
     data = ET.Element('streets')
     busStations_data = ET.Element('busStations')
     busStops_data = ET.Element('busStops')
@@ -179,3 +184,10 @@ def writeActivityGenSupportingData(traci,edge_list):
         f.write(d_xml)
         f.write(e_xml)
         f.write(f_xml)
+
+    # add what needs to be added to generate a new stat file
+    city.append(data)
+    city.append(busStations_data)
+    city.append(data_busLines)
+    ET.indent(stattree, space="  ")
+    stattree.write("../sumo_config/act.stat.xml", pretty_print=True)
