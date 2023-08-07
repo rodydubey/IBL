@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from sumolib import checkBinary
 import os
 import sys
@@ -165,11 +165,11 @@ def writeActivityGenSupportingData(traci,edge_list):
     # c_xml = ET.tostring(busStations_data,pretty_print=True)
     # d_xml = ET.tostring(busStops_data,pretty_print=True)
 
-    b_xml = ET.tostring(data)
-    c_xml = ET.tostring(busStations_data)
-    d_xml = ET.tostring(busStops_data)
-    e_xml = ET.tostring(data_busLines)
-    f_xml = ET.tostring(data_vType)
+    b_xml = ET.tostring(data, pretty_print=True)
+    c_xml = ET.tostring(busStations_data, pretty_print=True)
+    d_xml = ET.tostring(busStops_data, pretty_print=True)
+    e_xml = ET.tostring(data_busLines, pretty_print=True)
+    f_xml = ET.tostring(data_vType, pretty_print=True)
  
     # Opening a file under the name `items2.xml`,
     # with operation mode `wb` (write + binary)

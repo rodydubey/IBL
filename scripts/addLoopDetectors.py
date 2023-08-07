@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from sumolib import checkBinary
 import os
 import sys
@@ -71,7 +71,7 @@ def writeAdditionalFilesForLoopDetector():
             s_elem1.set('file', 'loopDetectors.out.xml')
 
 
-    b_xml = ET.tostring(data)
+    b_xml = ET.tostring(data, pretty_print=True)
  
     # Opening a file under the name `items2.xml`,
     # with operation mode `wb` (write + binary)
