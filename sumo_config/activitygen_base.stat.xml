@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+	TITLE:	test1.stat.xml
+	AUTHOR:	Piotr Woznica - sf.contact@web-pw.com
+	DATE:	04/08/2010
+-->
+
+<city>
+	<general inhabitants="2000" households="1000" childrenAgeLimit="19" retirementAgeLimit="66" carRate="0.75" unemploymentRate="0.05" footDistanceLimit="250" incomingTraffic="100" outgoingTraffic="400" laborDemand="1.05"/>
+	<parameters carPreference="0.50" meanTimePerKmInCity="6" freeTimeActivityRate="0.15" uniformRandomTraffic="0.20" departureVariation="300" />
+	
+	<population>
+		<bracket beginAge="0" endAge="30" peopleNbr="30" />
+		<bracket beginAge="30" endAge="60" peopleNbr="40" />
+		<bracket beginAge="60" endAge="90" peopleNbr="30" />
+	</population>
+	
+	<workHours>
+		<opening hour="30600" proportion="0.30" />
+		<opening hour="32400" proportion="0.70" />
+		<closing hour="43200" proportion="0.20" />
+		<closing hour="63000" proportion="0.20" />
+		<closing hour="64800" proportion="0.60" />
+	</workHours>
+	
+
+	
+	<cityGates>
+		<entrance edge="-840" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-846" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-848" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-1201" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-1404" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-867" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-1464" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-496" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-684" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-686" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-1057" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-880" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-730" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="319" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-330" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-17" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="9" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="25" pos="280" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-1494" pos="1" incoming="0.05" outgoing="0.05" />
+		<entrance edge="-1199" pos="280" incoming="0.05" outgoing="0.05" />	
+	</cityGates>
+
+</city>

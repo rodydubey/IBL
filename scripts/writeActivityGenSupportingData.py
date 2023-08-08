@@ -8,7 +8,14 @@ import traci
 import csv
 import random
 import json
- 
+import re
+import subprocess
+import matplotlib.colors as cm
+import matplotlib.pyplot as plt
+
+
+colors = [cm.to_rgb(plt.cm.tab20(i)) for i in range(20)]
+
 def writeActivityGenSupportingData(netFileName, edge_list):
    
     #Write streets info 
@@ -20,8 +27,8 @@ def writeActivityGenSupportingData(netFileName, edge_list):
     xmlfile = "../sumo_config/activitygen_base.stat.xml"
     stattree = ET.parse(xmlfile)
     city = stattree.getroot()
-    streets = city.find('streets')
-    city.remove(streets)
+    # streets = city.find('streets')
+    # city.remove(streets)
 
     data = ET.Element('streets')
     busStations_data = ET.Element('busStations')
@@ -95,8 +102,28 @@ def writeActivityGenSupportingData(netFileName, edge_list):
     # list
     buslineID = 101          
     data_busLines = ET.Element('busLines')
-    
-    for route in data_route:
+    # build route file from busStations and busLines
+    routesxml = ET.Element('routes')
+    buslinedict = {}
+    for ridx, route in enumerate(data_route):
+        for i, _route in enumerate([route, route[::-1]]): # build forward and reverse routes
+            routexml = ET.SubElement(routesxml, 'route')
+            routeID = str(buslineID)
+            if i==1:
+                routeID += '_r'
+                _route = [str(-int(r)) for r in _route]
+            routexml.set('id', routeID)
+            route_str = ' '.join(_route)
+            routexml.set('color', ','.join(map(str,colors[ridx*2+i])))
+            routexml.set('edges', route_str)
+            buslinedict[routeID] = route_str
+            for r in _route[1:-1]:
+                busStopFromEdge = busStationToEdgeDict[r]   
+  
+                stopsxml = ET.SubElement(routexml, 'stop')
+                stopsxml.set('busStop', str(busStopFromEdge))
+                stopsxml.set('duration', "30")
+
         # print(route)
         # print(buslineID)
         s_elem4 = ET.SubElement(data_busLines, 'busLine')
@@ -131,6 +158,18 @@ def writeActivityGenSupportingData(netFileName, edge_list):
             i+=1
         buslineID+=1
     
+
+    # add what needs to be added to generate a new stat file
+    city.append(data)
+    city.append(busStations_data)
+    city.append(data_busLines)
+    ET.indent(stattree, space="  ")
+    stattree.write("../sumo_config/act.stat.xml", pretty_print=True)
+
+    subprocess.call(f'activitygen --net-file {netFileName} --stat-file ../sumo_config/act.stat.xml --output-file ../sumo_config/test.xml',
+                     shell=True)
+
+
     #Read trip files and create bus route type with busStops. NOTE: file test_trips.rou.xml should be created first
     # <vehicle id ="bl101b1:1" type="BUS" depart="200" color="1,0,0">
     #     <route edges="-840 -642 -592 -332"/>
@@ -140,9 +179,13 @@ def writeActivityGenSupportingData(netFileName, edge_list):
     #     <stop busStop="76" duration="30"/>
     # </vehicle>
     data_vType = ET.Element('vType')
-    tree = ET.parse('../sumo_config/test_trips.rou.xml')
-    root = tree.getroot()
-    for trip in root.iter('trip'):
+    # tripstree = ET.parse('../sumo_config/test_trips.rou.xml')
+    tripstree = ET.parse('../sumo_config/test.xml')
+    tripsroot = tripstree.getroot()
+    for vtype in tripsroot.iter('vType'):
+        if vtype.attrib['vClass']=="bus":
+            del vtype.attrib['color']
+    for trip in tripsroot.iter('trip'):
         if trip.attrib['type'] == "bus":            
             s_elem11 = ET.SubElement(data_vType, 'vehicle')
             s_elem11.set('id', trip.attrib['id'])
@@ -166,32 +209,31 @@ def writeActivityGenSupportingData(netFileName, edge_list):
                 s_elem13.set('duration', "30")
 
 
+            try:
+                buslineID = re.search('bl(\d+)b*', trip.attrib['id']).group(1)
+                if edges!=buslinedict[buslineID]: # this is a reverse route
+                    buslineID += '_r'
+                    assert edges == buslinedict[buslineID]
+                trip.set('route', buslineID)
+                del trip.attrib['from']
+                del trip.attrib['via']
+                del trip.attrib['to']
+                trip.tag = 'vehicle'
+            except:
+                print(f'{trip.attrib["id"]} is not a bus. Removing item')
+                trip.getparent().remove(trip)
 
-            
 
 
-    # b_xml = ET.tostring(data,pretty_print=True)
-    # c_xml = ET.tostring(busStations_data,pretty_print=True)
-    # d_xml = ET.tostring(busStops_data,pretty_print=True)
 
-    b_xml = ET.tostring(data, pretty_print=True)
-    c_xml = ET.tostring(busStations_data, pretty_print=True)
-    d_xml = ET.tostring(busStops_data, pretty_print=True)
-    e_xml = ET.tostring(data_busLines, pretty_print=True)
-    f_xml = ET.tostring(data_vType, pretty_print=True)
- 
-    # Opening a file under the name `items2.xml`,
-    # with operation mode `wb` (write + binary)
-    with open("../sumo_config/activitygenSupport.xml", "wb") as f:
-        f.write(b_xml)
-        f.write(c_xml)
-        f.write(d_xml)
-        f.write(e_xml)
-        f.write(f_xml)
+    additionalxml = ET.Element('additional')
+    additionaltree = ET.ElementTree(additionalxml)
+    for bs in busStops_data:
+        additionalxml.append(bs)
+    ET.indent(additionaltree, space="  ")
+    additionaltree.write("../sumo_config/busStop.add.xml", pretty_print=True)
 
-    # add what needs to be added to generate a new stat file
-    city.append(data)
-    city.append(busStations_data)
-    city.append(data_busLines)
-    ET.indent(stattree, space="  ")
-    stattree.write("../sumo_config/act.stat.xml", pretty_print=True)
+    for r in routesxml:
+        tripsroot.insert(0,r)
+    ET.indent(tripstree, space="  ")
+    tripstree.write("../sumo_config/processed_trips.xml", pretty_print=True)

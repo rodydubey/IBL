@@ -2,7 +2,7 @@
     <input>
 		<additional-files value="loopDetectors.add.xml,busStop.add.xml"/>
 		<net-file value="SimpleRandom.net.xml"/>
-        <route-files value="test_trips.rou.xml"/>
+        <route-files value="processed_trips.xml"/>
     </input>
 </configuration>
 
