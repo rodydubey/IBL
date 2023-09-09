@@ -63,7 +63,7 @@ writeActivityGenSupportingData(networkFileName,edge_list)
 ###uncomment below function everytime you need to generate new activityGen related files 
 
 ###uncomment below function everytime you need to generate new Loop  detector additional file
-# loopDetector(traci,edge_list,loopDetectorFileName)
+loopDetector(network, edge_list, loopDetectorFileName)
 ###uncomment below function everytime you need to generate new Loop  detector additional file
 
 # generateGraph(traci,edge_list,network)

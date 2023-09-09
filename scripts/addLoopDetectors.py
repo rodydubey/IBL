@@ -7,17 +7,19 @@ import traci
 import csv
 
 segmentLength = 25
-def loopDetector(traci,edge_list,filename):
+def loopDetector(network,edge_list,filename):
     
     dataList = []
     for edge_id in edge_list:
-        lane_count = traci.edge.getLaneNumber(edge_id)
-        lane_index = 0
-        # if edge_id == "-840":
-        while lane_index < lane_count:
-            lane_id = edge_id + "_" + str(lane_index)
-            length = traci.lane.getLength(lane_id)
+        lanes = network.getEdge(edge_id).getLanes()
 
+        # lane_index = 0
+        # if edge_id == "-840":
+        for lane in lanes:
+            # lane_id = edge_id + "_" + str(lane_index)
+            # length = traci.lane.getLength(lane_id)
+            length = lane.getLength()
+            lane_id = lane.getID()
             # # divide the lane into N segements of 25 meters
             # numberOfSegment = int(length/segmentLength)
             # loopCounter = 0
@@ -42,7 +44,7 @@ def loopDetector(traci,edge_list,filename):
 
             
             # print(numberOfSegment)
-            lane_index+=1
+            # lane_index+=1
 
     # write dataList to a CSV file
     # header = ['Lane_ID','Loop Detector Id', 'Loop Detector Position']
@@ -55,9 +57,9 @@ def loopDetector(traci,edge_list,filename):
                 # print(length)
 
     # write additional file for sumocfg
-    writeAdditionalFilesForLoopDetector()
+    writeAdditionalFilesForLoopDetector(edge_list)
 
-def writeAdditionalFilesForLoopDetector():
+def writeAdditionalFilesForLoopDetector(edge_list):
    
     data = ET.Element('additionals')
     with open('../sumo_config/loopDetectorList.csv', 'r') as file:
@@ -67,15 +69,24 @@ def writeAdditionalFilesForLoopDetector():
             s_elem1.set('id', row[1])
             s_elem1.set('lane', row[0])
             s_elem1.set('pos', row[2])
-            s_elem1.set('freq', '10000')
+            s_elem1.set('freq', '300')
             s_elem1.set('file', 'loopDetectors.out.xml')
 
+    edata_bus = ET.SubElement(data, 'edgeData')
+    edata_bus.set('id', 'edgestats_bus')
+    edata_bus.set('freq', '300')
+    edata_bus.set('file', 'edgestats.out.xml')
+
+    edata_cars = ET.SubElement(data, 'edgeData')
+    edata_cars.set('id', 'edgestats_cars')
+    edata_cars.set('freq', '300')
+    edata_cars.set('file', 'edgestats.out.xml')
 
     b_xml = ET.tostring(data, pretty_print=True)
  
     # Opening a file under the name `items2.xml`,
     # with operation mode `wb` (write + binary)
-    with open("../sumo_config/loopDetectors_temp.add.xml", "wb") as f:
+    with open("../sumo_config/loopDetectors.add.xml", "wb") as f:
         f.write(b_xml)
 
 
