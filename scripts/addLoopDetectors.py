@@ -5,8 +5,8 @@ import sys
 import numpy as np
 import traci
 import csv
+import params
 
-segmentLength = 25
 def loopDetector(network,edge_list,filename):
     
     dataList = []
@@ -21,7 +21,7 @@ def loopDetector(network,edge_list,filename):
             length = lane.getLength()
             lane_id = lane.getID()
             # # divide the lane into N segements of 25 meters
-            # numberOfSegment = int(length/segmentLength)
+            # numberOfSegment = int(length/params.segmentLength)
             # loopCounter = 0
             # pos = 0
             # while loopCounter < numberOfSegment:
@@ -69,17 +69,17 @@ def writeAdditionalFilesForLoopDetector(edge_list):
             s_elem1.set('id', row[1])
             s_elem1.set('lane', row[0])
             s_elem1.set('pos', row[2])
-            s_elem1.set('freq', '300')
+            s_elem1.set('freq', params.measurementPeriod)
             s_elem1.set('file', 'loopDetectors.out.xml')
 
     edata_bus = ET.SubElement(data, 'edgeData')
     edata_bus.set('id', 'edgestats_bus')
-    edata_bus.set('freq', '300')
+    edata_bus.set('freq', params.measurementPeriod)
     edata_bus.set('file', 'edgestats.out.xml')
 
     edata_cars = ET.SubElement(data, 'edgeData')
     edata_cars.set('id', 'edgestats_cars')
-    edata_cars.set('freq', '300')
+    edata_cars.set('freq', params.measurementPeriod)
     edata_cars.set('file', 'edgestats.out.xml')
 
     b_xml = ET.tostring(data, pretty_print=True)
