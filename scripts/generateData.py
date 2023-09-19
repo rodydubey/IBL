@@ -8,13 +8,9 @@ if 'SUMO_HOME' in os.environ:
     print(tools)
 else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
-from addLoopDetectors import loopDetector
-from generateGraph import generateGraph
-from utils import getEdgesBetweenOD
 import params
 import traci
 
-from writeActivityGenSupportingData import writeActivityGenSupportingData
 """
 Configure various parameters of SUMO
 """
