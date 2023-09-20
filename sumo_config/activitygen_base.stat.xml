@@ -7,8 +7,8 @@
 -->
 
 <city>
-	<general inhabitants="2000" households="1000" childrenAgeLimit="19" retirementAgeLimit="66" carRate="0.75" unemploymentRate="0.05" footDistanceLimit="250" incomingTraffic="100" outgoingTraffic="400" laborDemand="1.05"/>
-	<parameters carPreference="0.50" meanTimePerKmInCity="6" freeTimeActivityRate="0.15" uniformRandomTraffic="0.20" departureVariation="300" />
+	<general inhabitants="5000" households="2000" childrenAgeLimit="19" retirementAgeLimit="66" carRate="0.95" unemploymentRate="0.05" footDistanceLimit="250" incomingTraffic="100" outgoingTraffic="400" laborDemand="1.05"/>
+	<parameters carPreference="0.90" meanTimePerKmInCity="6" freeTimeActivityRate="0.15" uniformRandomTraffic="0.20" departureVariation="300" />
 	
 	<population>
 		<bracket beginAge="0" endAge="30" peopleNbr="30" />
