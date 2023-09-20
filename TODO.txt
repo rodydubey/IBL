@@ -1,0 +1,4 @@
+randomly assign lane priviliges in 30 minutes time. FOr IBL lanes change it after every 5 minutes
+Find edge and node features - photo
+Damian creating datafiles
+I create timeseries data for GNN
