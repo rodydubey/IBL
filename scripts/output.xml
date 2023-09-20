@@ -6,6 +6,7 @@
     <input>
         <net-file value="../sumo_config/SimpleRandom.net.xml"/>
         <route-files value="../sumo_config/processed_trips.xml"/>
+        <route-files value="../sumo_config/processed_trips.xml"/>
         <additional-files value="../sumo_config/loopDetectors.add.xml,../sumo_config/busStop.add.xml"/>
     </input>
 
@@ -58,4 +59,5 @@
     <teleports total="2162" jam="0" yield="3" wrongLane="2159"/>
     <safety collisions="0" emergencyStops="1884"/>
     <persons loaded="0" running="0" jammed="0"/>
+    <personTeleports total="0" abortWait="0" wrongDest="0"/>
 </statistics>

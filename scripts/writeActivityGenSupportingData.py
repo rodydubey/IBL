@@ -149,13 +149,12 @@ def writeActivityGenSupportingData(netFileName, edge_list):
             s_elem8.set('refId', str(busStopFromEdge))
 
         s_elem9 = ET.SubElement(s_elem4, 'frequencies')
-        i = 0
-        while i <4:
+        periods = [(18000, 25200), (25200, 36000), (36000, 57600), (57600, 72000), (72000, 86399)] # 5, 7, 10, 16, 20, 23:59:59
+        for i, (start, end) in enumerate(periods):
             s_elem10 = ET.SubElement(s_elem9, 'frequency')
-            s_elem10.set('begin', '21600')
-            s_elem10.set('end', '36000')
-            s_elem10.set('rate', '300')
-            i+=1
+            s_elem10.set('begin', str(start))
+            s_elem10.set('end', str(end))
+            s_elem10.set('rate', '300') # time between two buses in seconds
         buslineID+=1
     
 
