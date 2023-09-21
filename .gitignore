@@ -3,3 +3,5 @@ output.xml
 __pycache__
 *.pyc
 debug*.xml
+act.stat.xml
+test.xml
