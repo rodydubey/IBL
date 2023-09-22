@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2023-09-21 14:27:41 by Eclipse SUMO netconvert Version v1_17_0+0725-de92290f118
+<!-- generated on 2023-09-22 11:12:40 by Eclipse SUMO netedit Version 1.16.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <node-files value="debug.nod.xml"/>
-        <edge-files value="debug.edg.xml"/>
+        <sumo-net-file value="C:\D\SUMO\IBL\sumo_config\SimpleRandom.net.xml"/>
     </input>
 
     <output>
-        <output-file value="SimpleRandom.net.xml"/>
+        <output-file value="C:\D\SUMO\IBL\sumo_config\SimpleRandom.net.xml"/>
     </output>
+
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="0"/>
+    </processing>
 
     <junctions>
         <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.50"/>
+        <rectangular-lane-cut value="0"/>
     </junctions>
+
+    <pedestrian>
+        <walkingareas value="0"/>
+    </pedestrian>
 
 </configuration>
 -->
