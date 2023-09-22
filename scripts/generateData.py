@@ -124,11 +124,11 @@ with open('lanePermission.csv','w') as file:
             file.write('\n')
         #### USE A FLAG FOR INTERMITTENT ####
         # isIntermittent = True
-        intermittentPeriods = 6
+        intermittentPeriods = params.measurementPeriod//params.intermittentPeriod
         if isIntermittent:
-            time_increment = params.measurementPeriod # 5 mins
+            time_increment = params.intermittentPeriod # 5 mins
         else:
-            time_increment = params.measurementPeriod*intermittentPeriods # 30 mins
+            time_increment = params.measurementPeriod # 30 mins
 
         if isIntermittent:
             for i in range(intermittentPeriods):
