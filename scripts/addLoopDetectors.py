@@ -59,15 +59,18 @@ def loopDetector(network,edge_list,filename):
     # write additional file for sumocfg
     writeAdditionalFilesForLoopDetector(edge_list)
 
+vehicleTypeMap = {'bus': 'bus', 
+                  'passenger': 'default random'}
+
 def writeAdditionalFilesForLoopDetector(edge_list):
    
     data = ET.Element('additionals')
     with open('../sumo_config/loopDetectorList.csv', 'r') as file:
         csvreader = csv.reader(file)
         for row in csvreader:
-            for vtype in ['BUS', 'PASSENGER']:
+            for key, vtype in vehicleTypeMap.items():
                 s_elem1 = ET.SubElement(data, 'e1Detector')
-                s_elem1.set('id', f'{row[1]}_{vtype}')
+                s_elem1.set('id', f'{row[1]}_{key}')
                 s_elem1.set('lane', row[0])
                 s_elem1.set('pos', row[2])
                 s_elem1.set('freq', str(params.measurementPeriod))
