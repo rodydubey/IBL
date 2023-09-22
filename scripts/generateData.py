@@ -83,7 +83,7 @@ with open('lanePermission.csv','w') as file:
     while stepCounter < daySeconds:
         ######### INSERT CODE FOR MODIFYING PERMISSIONS HERE ########
         # change lane perimission every 30 minutes
-        if stepCounter % 1800 == 0:
+        if stepCounter % params.measurementPeriod*params.intermittentPeriods == 0:
             isIntermittent = False
             IBL_lanes = [] # temp IBL lanes
             lineList = []
@@ -124,14 +124,14 @@ with open('lanePermission.csv','w') as file:
             file.write('\n')
         #### USE A FLAG FOR INTERMITTENT ####
         # isIntermittent = True
-        intermittentPeriods = 6
+       
         if isIntermittent:
-            time_increment = params.measurementPeriod # 5 mins
+            time_increment = params.measurementPeriod # 1 mins
         else:
-            time_increment = params.measurementPeriod*intermittentPeriods # 30 mins
+            time_increment = params.measurementPeriod*params.intermittentPeriods # 5 mins
 
         if isIntermittent:
-            for i in range(intermittentPeriods):
+            for i in range(params.intermittentPeriods):
                 stepCounter += time_increment
                 traci.simulationStep(stepCounter)
                 # intermittentPermissionToggleFunction()

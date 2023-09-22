@@ -2,14 +2,15 @@ import numpy as np
 import torch
 from torch_geometric.utils import dense_to_sparse
 
-# adj_mat = np.load('C:\\Users\\rodubey\\Downloads\\METR-LA\\adj_mat.npy')
-# print(len(adj_mat))
-# adj_mat = torch.from_numpy(adj_mat)
-# edge_indices, values = dense_to_sparse(adj_mat)
-# edge_indices = edge_indices.numpy()
-# edge_weights  = values.numpy()
+adj_mat = np.load('C:\\Users\\rodubey\\Downloads\\METR-LA\\adj_mat.npy')
+adj_mat = torch.from_numpy(adj_mat)
+print(len(adj_mat[0]))
+edge_indices, values = dense_to_sparse(adj_mat)
+edge_indices = edge_indices.numpy()
+edge_weights  = values.numpy()
+# np.savetxt("test.csv", adj_mat, delimiter=",")
 
-# print(edge_indices[0])
+# print(len(edge_indices[0]))
 # print(len(edge_weights))
 # print(edge_indices.shape)
 # print(edge_weights.shape)
