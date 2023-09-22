@@ -188,7 +188,7 @@ def writeActivityGenSupportingData(netFileName, edge_list):
         if trip.attrib['type'] == "bus":            
             s_elem11 = ET.SubElement(data_vType, 'vehicle')
             s_elem11.set('id', trip.attrib['id'])
-            s_elem11.set('type', "BUS")
+            s_elem11.set('type', "bus")
             s_elem11.set('depart', trip.attrib['depart'])
             s_elem11.set('color', "0,0,1")
 
