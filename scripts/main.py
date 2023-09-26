@@ -26,15 +26,15 @@ for edge_id in nEdges:
     if edge_id.find("_") == -1: # filters edges from internal edges
         edge_list.append(edge_id)
 
+###uncomment below function everytime you need to generate new Loop  detector additional file
+loopDetector(network, edge_list, loopDetectorFileName)
+###uncomment below function everytime you need to generate new Loop  detector additional file
+
+getEdgesBetweenOD(network)
 
 ###uncomment below function everytime you need to generate new activityGen related files 
 writeActivityGenSupportingData(networkFileName,edge_list)
 ###uncomment below function everytime you need to generate new activityGen related files 
 
-###uncomment below function everytime you need to generate new Loop  detector additional file
-loopDetector(network, edge_list, loopDetectorFileName)
-###uncomment below function everytime you need to generate new Loop  detector additional file
-
 # generateGraph(traci,edge_list,network)
 
-getEdgesBetweenOD(network)

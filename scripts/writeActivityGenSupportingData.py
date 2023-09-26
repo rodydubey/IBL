@@ -30,6 +30,14 @@ def writeActivityGenSupportingData(netFileName, edge_list):
     # streets = city.find('streets')
     # city.remove(streets)
 
+    # Opening JSON file
+    with open('../sumo_config/Routes.json') as f:
+        # returns JSON object as a dictionary
+        buslinedict = json.load(f)
+
+    bus_route_edges = set([item for sublist in buslinedict.values() for item in sublist])
+    bus_route_edges.update(set([str(-int(i)) for i in bus_route_edges])) # Assume all reverse edges are also part of bus_routes
+
     data = ET.Element('streets')
     busStations_data = ET.Element('busStations')
     busStops_data = ET.Element('busStops')
@@ -52,27 +60,28 @@ def writeActivityGenSupportingData(netFileName, edge_list):
         #<busStations>
             #<busStation id="1" edge="e11t12" pos="10" />
         #</busStations>
-        lane_id = edge_id + "_0"
-        lane = network.getLane(lane_id)
-        edge_length = lane.getLength()        
-        s_elem2 = ET.SubElement(busStations_data, 'busStation')
-        s_elem2.set('id', str(bus_station_counter))
-        s_elem2.set('edge', edge_id)
-        busStationToEdgeDict[edge_id] = bus_station_counter
-        #random position on an edge
-        pos = random.randrange(int(edge_length-10))
-        s_elem2.set('pos', str(pos))
+        if edge_id in bus_route_edges:
+
+            lane_id = edge_id + "_0"
+            lane = network.getLane(lane_id)
+            edge_length = lane.getLength()        
+            s_elem2 = ET.SubElement(busStations_data, 'busStation')
+            s_elem2.set('id', str(bus_station_counter))
+            s_elem2.set('edge', edge_id)
+            busStationToEdgeDict[edge_id] = bus_station_counter
+            #random position on an edge
+            pos = random.randrange(int(edge_length-10))
+            s_elem2.set('pos', str(pos))
 
         #Write additionalFile for sumocfg regarding busstop location and visualization
         #<busStop id="bs_0" lane="-840_0" startPos="143.78" endPos="153.78" lines="101"/>   
-
-        s_elem3 = ET.SubElement(busStops_data, 'busStop')
-        s_elem3.set('id', str(bus_station_counter))
-        s_elem3.set('lane', lane_id)
-        s_elem3.set('startPos', str(pos))
-        s_elem3.set('endPos', str(pos+10))
-        s_elem3.set('lines', "101 102 103 104 105 106 107")
-        bus_station_counter+=1
+            s_elem3 = ET.SubElement(busStops_data, 'busStop')
+            s_elem3.set('id', str(bus_station_counter))
+            s_elem3.set('lane', lane_id)
+            s_elem3.set('startPos', str(pos))
+            s_elem3.set('endPos', str(pos+10))
+            s_elem3.set('lines', "101 102 103 104 105 106 107")
+            bus_station_counter+=1
 
     #write busLines
     # <busLines>
@@ -90,72 +99,55 @@ def writeActivityGenSupportingData(netFileName, edge_list):
     # </busLines>
     #NOTE: Routes.json file should be pre-written for this part to work
 
-    
-    # Opening JSON file
-    f = open('../sumo_config/Routes.json')
-    
-    # returns JSON object as
-    # a dictionary
-    data_route = json.load(f)
-    
     # Iterating through the json
     # list
-    buslineID = 101          
+    # buslineID = 101          
     data_busLines = ET.Element('busLines')
     # build route file from busStations and busLines
     routesxml = ET.Element('routes')
-    buslinedict = {}
-    for ridx, route in enumerate(data_route):
-        for i, _route in enumerate([route, route[::-1]]): # build forward and reverse routes
-            routexml = ET.SubElement(routesxml, 'route')
-            routeID = str(buslineID)
-            if i==1:
-                routeID += '_r'
-                _route = [str(-int(r)) for r in _route]
-            routexml.set('id', routeID)
-            route_str = ' '.join(_route)
-            routexml.set('color', ','.join(map(str,colors[ridx*2+i])))
-            routexml.set('edges', route_str)
-            buslinedict[routeID] = route_str
-            for r in _route[1:-1]:
-                busStopFromEdge = busStationToEdgeDict[r]   
-  
-                stopsxml = ET.SubElement(routexml, 'stop')
-                stopsxml.set('busStop', str(busStopFromEdge))
-                stopsxml.set('duration', "30")
+    # buslinedict = {}
+    for i, (buslineID, route) in enumerate(buslinedict.items()):
+        # build bus route xml
+        route = [str(r) for r in route]
+        routexml = ET.SubElement(routesxml, 'route')
+        routeID = str(buslineID)
+        routexml.set('id', routeID)
+        route_str = ' '.join(route)
+        routexml.set('color', ','.join(map(str,colors[i])))
+        routexml.set('edges', route_str)
+        buslinedict[routeID] = route_str
+        for r in route[1:-1]:
+            busStopFromEdge = busStationToEdgeDict[r]   
 
-        # print(route)
-        # print(buslineID)
-        s_elem4 = ET.SubElement(data_busLines, 'busLine')
-        s_elem4.set('id', str(buslineID))
-        s_elem4.set('maxTripDuration', '10')
-        s_elem5 = ET.SubElement(s_elem4, 'stations')
-        for r in route:
-            busStopFromEdge = busStationToEdgeDict[r]     
-            s_elem6 = ET.SubElement(s_elem5, 'station')
-            s_elem6.set('refId', str(busStopFromEdge))
-        
-        reverseList = route[::-1]
-        s_elem7 = ET.SubElement(s_elem4, 'revStations')
-        for r_reverse in reverseList:
-            r_reverse = int(r_reverse)
-            if r_reverse < 0:      
-                busStopFromEdge = busStationToEdgeDict[str(abs(r_reverse))]
-            else:
-                busStopFromEdge = busStationToEdgeDict[str(-r_reverse)]
-            
-            
-            s_elem8 = ET.SubElement(s_elem7, 'station')
-            s_elem8.set('refId', str(busStopFromEdge))
+            stopsxml = ET.SubElement(routexml, 'stop')
+            stopsxml.set('busStop', str(busStopFromEdge))
+            stopsxml.set('duration', "30")
 
-        s_elem9 = ET.SubElement(s_elem4, 'frequencies')
-        periods = [(18000, 25200), (25200, 36000), (36000, 57600), (57600, 72000), (72000, 86399)] # 5, 7, 10, 16, 20, 23:59:59
-        for i, (start, end) in enumerate(periods):
-            s_elem10 = ET.SubElement(s_elem9, 'frequency')
-            s_elem10.set('begin', str(start))
-            s_elem10.set('end', str(end))
-            s_elem10.set('rate', '300') # time between two buses in seconds
-        buslineID+=1
+        if '_r' not in routeID:
+            x_busline = ET.SubElement(data_busLines, 'busLine')
+            x_busline.set('id', routeID)
+            x_busline.set('maxTripDuration', '10')
+            x_stations = ET.SubElement(x_busline, 'stations')
+            for r in route:
+                busStopFromEdge = busStationToEdgeDict[r]     
+                x_station = ET.SubElement(x_stations, 'station')
+                x_station.set('refId', str(busStopFromEdge))
+
+            s_elem9 = ET.SubElement(x_busline, 'frequencies')
+            periods = [(18000, 25200), (25200, 36000), (36000, 57600), (57600, 72000), (72000, 86399)] # 5, 7, 10, 16, 20, 23:59:59
+            for i, (start, end) in enumerate(periods):
+                s_elem10 = ET.SubElement(s_elem9, 'frequency')
+                s_elem10.set('begin', str(start))
+                s_elem10.set('end', str(end))
+                s_elem10.set('rate', '300') # time between two buses in seconds
+        else:
+            assert routeID[:-2]==x_busline.attrib['id'] # same as previous
+            # reverseList = route[::-1]
+            x_revStation = ET.SubElement(x_busline, 'revStations')
+            for r_reverse in route:
+                busStopFromEdge = busStationToEdgeDict[r_reverse]
+                x_station = ET.SubElement(x_revStation, 'station')
+                x_station.set('refId', str(busStopFromEdge))
     
 
     # add what needs to be added to generate a new stat file
@@ -177,6 +169,7 @@ def writeActivityGenSupportingData(netFileName, edge_list):
     #     <stop busStop="105" duration="30"/>
     #     <stop busStop="76" duration="30"/>
     # </vehicle>
+    errctr = 0
     data_vType = ET.Element('vType')
     # tripstree = ET.parse('../sumo_config/test_trips.rou.xml')
     tripstree = ET.parse('../sumo_config/test.xml')
@@ -209,7 +202,7 @@ def writeActivityGenSupportingData(netFileName, edge_list):
 
 
             try:
-                buslineID = re.search('bl(\d+)b*', trip.attrib['id']).group(1)
+                buslineID = re.search(r'bl(\d+)b*', trip.attrib['id']).group(1)
                 if edges!=buslinedict[buslineID]: # this is a reverse route
                     buslineID += '_r'
                     assert edges == buslinedict[buslineID]
@@ -219,11 +212,12 @@ def writeActivityGenSupportingData(netFileName, edge_list):
                 del trip.attrib['to']
                 trip.tag = 'vehicle'
             except:
+                errctr+=1
                 print(f'{trip.attrib["id"]} is not a bus. Removing item')
                 trip.getparent().remove(trip)
 
-
-
+    if errctr:
+        print(f'{errctr} buses have route errors')
 
     additionalxml = ET.Element('additional')
     additionaltree = ET.ElementTree(additionalxml)

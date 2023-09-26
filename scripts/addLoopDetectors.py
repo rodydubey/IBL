@@ -73,18 +73,18 @@ def writeAdditionalFilesForLoopDetector(edge_list):
                 s_elem1.set('id', f'{row[1]}_{key}')
                 s_elem1.set('lane', row[0])
                 s_elem1.set('pos', row[2])
-                s_elem1.set('freq', str(params.measurementPeriod))
+                s_elem1.set('freq', str(params.detectorMeasurementInterval))
                 s_elem1.set('vTypes', vtype)
                 s_elem1.set('file', 'loopDetectors.out.xml')
 
     edata_bus = ET.SubElement(data, 'edgeData')
     edata_bus.set('id', 'edgestats_bus')
-    edata_bus.set('freq', str(params.measurementPeriod))
+    edata_bus.set('freq', str(params.detectorMeasurementInterval))
     edata_bus.set('file', 'edgestats.out.xml')
 
     edata_cars = ET.SubElement(data, 'edgeData')
     edata_cars.set('id', 'edgestats_cars')
-    edata_cars.set('freq', str(params.measurementPeriod))
+    edata_cars.set('freq', str(params.detectorMeasurementInterval))
     edata_cars.set('file', 'edgestats.out.xml')
 
     b_xml = ET.tostring(data, pretty_print=True)
