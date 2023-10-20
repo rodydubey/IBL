@@ -4,5 +4,15 @@
 		<net-file value="SimpleRandom.net.xml"/>
         <route-files value="processed_trips.xml"/>
     </input>
+    <routing>
+        <device.rerouting.explicit value="default,random" />
+        <device.rerouting.threads value="4" />
+        <device.rerouting.period value="60" />
+    </routing>
+	<process>
+        <begin value="0"/>
+        <route-steps value="200"/>
+        <routing-algorithm value="astar"/>        
+    </process>
 </configuration>
 

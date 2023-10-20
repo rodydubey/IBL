@@ -33,12 +33,12 @@ def loopDetector(network,edge_list,filename):
             #     loopCounter+=1
 
             # for scenario when two loop detectors are needed. One at the begining and another at the end.
-            loopDetectorId = "det_" + lane_id + "_" + str(0)
-            pos = 0
-            data = [lane_id,loopDetectorId,pos]
-            dataList.append(data)
+            # loopDetectorId = "det_" + lane_id + "_" + str(0)
+            # pos = 0
+            # data = [lane_id,loopDetectorId,pos]
+            # dataList.append(data)
             loopDetectorId = "det_" + lane_id + "_" + str(1)
-            pos = length
+            pos = length - 10
             data = [lane_id,loopDetectorId,pos]
             dataList.append(data)
 
