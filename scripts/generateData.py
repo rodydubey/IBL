@@ -4,6 +4,7 @@ import os, sys
 from sumolib import net
 from random import randrange
 import json
+import math
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -49,62 +50,105 @@ networkFileName = '../sumo_config/SimpleRandom.net.xml'
 routesJsonFileName = '../sumo_config/Routes.json'
 
 traci.start([sumoBinary] + sumoCMD)
-daySeconds = 16400
+daySeconds = 86400
 stepCounter = 0
 edge_list = [] # list of all edges
 candidate_bus_lanes = [] # list of all lanes that can be adapted to bus lanes
 network = net.readNet(networkFileName)
 nEdges = [e.getID() for e in network.getEdges()]
 
+
+ListOfStreetLength = []
 for edge_id in nEdges:   
     if edge_id.find("_") == -1: # filters edges from internal edges
         edge_list.append(edge_id)
+        edgeLength = network.getEdge(edge_id).getLength()
+        ListOfStreetLength.append(edgeLength)
+        # print(edgeLength)
 # print(edge_list)
 
+#compute Standard Distance and Mean of all edge length (i.e., distance between loop detectors)
+std_dev = np.std(ListOfStreetLength)
+mean = np.mean(ListOfStreetLength)
+# print(std_dev)
 for edge_id in edge_list:
     lanes = network.getEdge(edge_id).getLanes()
-    
     for lane in lanes:
         lane_id = lane.getID()
         if "_0" in lane_id:
             candidate_bus_lanes.append(lane_id)
-
-# candidate_bus_lanes.append("325_0")
+# print(math.exp(-math.sqrt(4*100/mean)))
+#Write weighted Adjacency matrix
+with open('../dataset/adj.csv','w') as adj_file:
+    for edge_id in edge_list:
+        text=''
+        for edge_id2 in edge_list:
+                #check if edge_id is connected to edge_id2. If yes compute degree/edge length
+            # if edge_id == edge_id2:
+            #     text = text + str(1) + ','
+            # else:
+            nextEdges = network.getEdge(edge_id).getOutgoing()
+            listOfEdges = [li.getID() for li in nextEdges]
+            degree = len(listOfEdges)
+            edgeLength = network.getEdge(edge_id).getLength()
+            flag = False
+            for nex in listOfEdges:
+                if edge_id2 in nex:
+                    flag = True                
+            if flag:
+                weight = math.exp(-np.sqrt(degree*edgeLength/np.square(mean)))
+                text = text + str(weight) + ','
+            else:
+                text = text + str(0) + ','
+        # print(text)
+        adj_file.write(text)
+        adj_file.write('\n')  
+adj_file.close()
+  
 all_traffic = ['pedestrian','private', 'emergency', 'passenger','authority', 'army', 'vip', 'hov', 'taxi', 'bus', 'coach', 'delivery', 'truck', 'trailer', 'motorcycle', 'moped', 'evehicle', 'tram', 'rail_urban', 'rail', 'rail_electric', 'rail_fast', 'ship', 'custom1', 'custom2']
 
 f = open(routesJsonFileName)
 routeData = json.load(f)
 
-# while stepCounter < 6000:
-#     traci.simulationStep(stepCounter)
-#     stepCounter+=1
-
-with open('lanePermission.csv','w') as file:
+with open('../dataset/NodeFeatures.csv','w') as file:
     while stepCounter < daySeconds:
+        traci.simulationStep(stepCounter)   
         ######### INSERT CODE FOR MODIFYING PERMISSIONS HERE ########
-        # change lane perimission every 30 minutes
-        if stepCounter % params.measurementPeriod*params.intermittentPeriods == 0:
+        if stepCounter % params.detectorMeasurementInterval == 0:
             isIntermittent = False
             IBL_lanes = [] # temp IBL lanes
             lineList = []
+            print(str(stepCounter) + "---" + str(traci.inductionloop.getLastIntervalVehicleNumber("det_-15_2_1_passenger")))
             for candidate_lane in candidate_bus_lanes:            
-                lane_qualifier = randrange(2) # 0 = all, 1 = dedicated bus lane, 2 = IBL
+                lane_qualifier = randrange(3) # 0 = all, 1 = dedicated bus lane, 2 = IBL
                 # lane_qualifier = 2
-               
+                
                 lane_length = traci.lane.getLength(candidate_lane)
                 lane_speed = traci.lane.getMaxSpeed(candidate_lane)
-                             
+                                
                 strippedLaneIndex = candidate_lane.split('_')[0]
-                #EDGE FEATURES - edge belongs to a bus route, number of bus stops at this edge, lane mode, lane length, lane speed
-                numberOfBusStop = 0
-                belongToBusRoute = 0
-                for edge in routeData:
-                    if strippedLaneIndex in edge:
-                        numberOfBusStop = 1
-                        belongToBusRoute = 1
+                #NODE FEATURES - edge belongs to a bus route, number of bus stops at this edge, lane mode, lane length, lane speed
+                # listOfBusOnAllLanes = []
+                
+                bus_count_lane_0 = "det_" + strippedLaneIndex + "_0_1_bus"
+                bus_count_lane_1 = "det_" + strippedLaneIndex + "_1_1_bus"
+                bus_count_lane_2 = "det_" + strippedLaneIndex + "_2_1_bus"
 
-                text = str(stepCounter) + "_" + str(strippedLaneIndex) + "_" + str(belongToBusRoute) + "_" + str(numberOfBusStop) + "_" + str(lane_qualifier) + "_" + str(lane_length) + "_" + str(lane_speed)
-                lineList.append(text)          
+                passenger_count_lane_0 = "det_" + strippedLaneIndex + "_0_1_passenger"
+                passenger_count_lane_1 = "det_" + strippedLaneIndex + "_1_1_passenger"
+                passenger_count_lane_2 = "det_" + strippedLaneIndex + "_2_1_passenger"
+
+                CountOfBusOnAllLanes = traci.inductionloop.getLastIntervalVehicleNumber(bus_count_lane_0) 
+                + traci.inductionloop.getLastIntervalVehicleNumber(bus_count_lane_1)
+                + traci.inductionloop.getLastIntervalVehicleNumber(bus_count_lane_2)
+
+                CountOfPassengersOnAllLanes = traci.inductionloop.getLastIntervalVehicleNumber(passenger_count_lane_0) 
+                + traci.inductionloop.getLastIntervalVehicleNumber(passenger_count_lane_1)
+                + traci.inductionloop.getLastIntervalVehicleNumber(passenger_count_lane_2)               
+
+                text = str(stepCounter) + "_" + str(strippedLaneIndex) + "_" + str(CountOfBusOnAllLanes) + "_" + str(CountOfPassengersOnAllLanes) + "_" + str(lane_qualifier)
+                lineList.append(text)
+                # print(text)          
                 tempLaneIndex1 = strippedLaneIndex + '_1'
                 tempLaneIndex2 = strippedLaneIndex + '_2'
                 if lane_qualifier == 0:
@@ -117,45 +161,33 @@ with open('lanePermission.csv','w') as file:
                     # traci.lane.setDisallowed(tempLaneIndex1,'bus')
                     traci.lane.setDisallowed(tempLaneIndex2,'bus')
                 else:
-                    isIntermittent = True
                     IBL_lanes.append(candidate_lane)
             for line in lineList:
                 file.write(line + ",")
             file.write('\n')
         #### USE A FLAG FOR INTERMITTENT ####
         # isIntermittent = True
-        if isIntermittent:
-            time_increment = params.measurementPeriod # 1 mins
-        else:
-            time_increment = params.measurementPeriod*params.intermittentPeriods # 5 mins
-
-        if isIntermittent:
-            for i in range(params.intermittentPeriods):
-                stepCounter += time_increment
-                traci.simulationStep(stepCounter)
-                # intermittentPermissionToggleFunction()
-                for IBL_lane in IBL_lanes:     
-                    strippedLaneIndex = IBL_lane.split('_')[0]
-                    tempLaneIndex1 = strippedLaneIndex + '_1'
-                    tempLaneIndex2 = strippedLaneIndex + '_2'            
-                    if 'bus' in traci.lane.getAllowed(IBL_lane) and 'passenger' in traci.lane.getAllowed(IBL_lane):
-                        # print(traci.lane.getAllowed(IBL_lane))
-                        # print("All traffic")
-                        traci.lane.setDisallowed(IBL_lane,all_traffic)
-                        traci.lane.setAllowed(IBL_lane,'bus')                      
-                        # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
-                        traci.lane.setAllowed(tempLaneIndex2,all_traffic)
-                        # traci.lane.setDisallowed(tempLaneIndex1,'bus')
-                        traci.lane.setDisallowed(tempLaneIndex2,'bus')
-                        
-                    else:
-                        # print("Only Bus")                               
-                        traci.lane.setAllowed(IBL_lane,all_traffic)
-                        # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
-                        traci.lane.setAllowed(tempLaneIndex2,all_traffic)
-        else:
-            stepCounter += time_increment
-            traci.simulationStep(stepCounter)
-file.close()
+        if stepCounter % params.intermittentPeriods == 0:
+            # intermittentPermissionToggleFunction()
+            for IBL_lane in IBL_lanes:     
+                strippedLaneIndex = IBL_lane.split('_')[0]
+                tempLaneIndex1 = strippedLaneIndex + '_1'
+                tempLaneIndex2 = strippedLaneIndex + '_2'            
+                if 'bus' in traci.lane.getAllowed(IBL_lane) and 'passenger' in traci.lane.getAllowed(IBL_lane):
+                    # print(traci.lane.getAllowed(IBL_lane))
+                    # print("All traffic")
+                    traci.lane.setDisallowed(IBL_lane,all_traffic)
+                    traci.lane.setAllowed(IBL_lane,'bus')                      
+                    # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
+                    traci.lane.setAllowed(tempLaneIndex2,all_traffic)
+                    # traci.lane.setDisallowed(tempLaneIndex1,'bus')
+                    traci.lane.setDisallowed(tempLaneIndex2,'bus')                    
+                else:
+                    # print("Only Bus")                               
+                    traci.lane.setAllowed(IBL_lane,all_traffic)
+                    # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
+                    traci.lane.setAllowed(tempLaneIndex2,all_traffic)            
+        stepCounter +=1 
+    file.close()      
 traci.close()
 

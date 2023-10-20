@@ -1,4 +1,4 @@
 segmentLength = 25
-detectorMeasurementInterval = 300 # seconds (5 mins)
-measurementPeriod = 60 # secons (5 mins)
-intermittentPeriods = 5
+detectorMeasurementInterval = 900 # seconds (15 mins), this can be 30, 45 and 60 mins for creating multiple datasets
+intermittentPeriods = 60 # secons (1 min) For IBL. We randomly change IBL perimission at 60 seconds
+# intermittentPeriods = 5
