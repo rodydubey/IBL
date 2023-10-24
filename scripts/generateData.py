@@ -1,7 +1,7 @@
 from sumolib import checkBinary
 import numpy as np
 import os, sys
-from sumolib import net
+from sumolib import net, xml
 from random import randrange
 import json
 import math
@@ -47,6 +47,7 @@ sumoCMD = ["-c", sumoConfig] + sumoCMD
 
 loopDetectorFileName = "../sumo_config/loopDetectors.add.xml"
 networkFileName = '../sumo_config/SimpleRandom.net.xml'
+busStopsFileName = '../sumo_config/busStop.add.xml'
 routesJsonFileName = '../sumo_config/Routes.json'
 
 traci.start([sumoBinary] + sumoCMD)
@@ -71,12 +72,8 @@ for edge_id in nEdges:
 std_dev = np.std(ListOfStreetLength)
 mean = np.mean(ListOfStreetLength)
 # print(std_dev)
-for edge_id in edge_list:
-    lanes = network.getEdge(edge_id).getLanes()
-    for lane in lanes:
-        lane_id = lane.getID()
-        if "_0" in lane_id:
-            candidate_bus_lanes.append(lane_id)
+for busStop in xml.parse(busStopsFileName, 'busStop'):
+    candidate_bus_lanes.append(busStop.lane)
 # print(math.exp(-math.sqrt(4*100/mean)))
 #Write weighted Adjacency matrix
 with open('../dataset/adj.csv','w') as adj_file:
@@ -107,8 +104,6 @@ adj_file.close()
   
 all_traffic = ['pedestrian','private', 'emergency', 'passenger','authority', 'army', 'vip', 'hov', 'taxi', 'bus', 'coach', 'delivery', 'truck', 'trailer', 'motorcycle', 'moped', 'evehicle', 'tram', 'rail_urban', 'rail', 'rail_electric', 'rail_fast', 'ship', 'custom1', 'custom2']
 
-f = open(routesJsonFileName)
-routeData = json.load(f)
 timeOftheDay = 0
 TwoDFeatureArray = np.zeros((len(candidate_bus_lanes),5))
 NodeFeatureArray = np.zeros((params.timeSlotForDayDivider,len(candidate_bus_lanes),5))
@@ -125,52 +120,48 @@ while stepCounter < daySeconds:
         lineList = []
         print(str(stepCounter) + "---" + str(traci.inductionloop.getLastIntervalVehicleNumber("det_-15_2_1_passenger")))
         nodeIndex = 0
-        for candidate_lane in candidate_bus_lanes:            
+        for candidate_lane in candidate_bus_lanes:
             lane_qualifier = randrange(3) # 0 = all, 1 = dedicated bus lane, 2 = IBL
             # lane_qualifier = 2
-            
-            lane_length = traci.lane.getLength(candidate_lane)
-            lane_speed = traci.lane.getMaxSpeed(candidate_lane)
+
+            edge = network.getLane(candidate_lane).getEdge()        
+            edge_id = edge.getID()
+            lane_length = edge.getLength()
+            lane_speed = edge.getSpeed()
                             
-            strippedLaneIndex = candidate_lane.split('_')[0]
             #NODE FEATURES - edge belongs to a bus route, number of bus stops at this edge, lane mode, lane length, lane speed
             # listOfBusOnAllLanes = []
             
-            bus_count_lane_0 = "det_" + strippedLaneIndex + "_0_1_bus"
-            bus_count_lane_1 = "det_" + strippedLaneIndex + "_1_1_bus"
-            bus_count_lane_2 = "det_" + strippedLaneIndex + "_2_1_bus"
+            CountOfBusOnAllLanes = 0
+            CountOfPassengersOnAllLanes = 0
+            for lane in edge.getLanes():
+                lane_id = lane.getID()
+                bus_detector = f'det_{lane_id}_1_bus'
+                car_detector = f'det_{lane_id}_1_passenger'
 
-            passenger_count_lane_0 = "det_" + strippedLaneIndex + "_0_1_passenger"
-            passenger_count_lane_1 = "det_" + strippedLaneIndex + "_1_1_passenger"
-            passenger_count_lane_2 = "det_" + strippedLaneIndex + "_2_1_passenger"
-
-            CountOfBusOnAllLanes = traci.inductionloop.getLastIntervalVehicleNumber(bus_count_lane_0) 
-            + traci.inductionloop.getLastIntervalVehicleNumber(bus_count_lane_1)
-            + traci.inductionloop.getLastIntervalVehicleNumber(bus_count_lane_2)
-
-            CountOfPassengersOnAllLanes = traci.inductionloop.getLastIntervalVehicleNumber(passenger_count_lane_0) 
-            + traci.inductionloop.getLastIntervalVehicleNumber(passenger_count_lane_1)
-            + traci.inductionloop.getLastIntervalVehicleNumber(passenger_count_lane_2)               
-
+                CountOfBusOnAllLanes = traci.inductionloop.getLastIntervalVehicleNumber(bus_detector) 
+                CountOfPassengersOnAllLanes = traci.inductionloop.getLastIntervalVehicleNumber(car_detector) 
+           
             # text = str(stepCounter) + "_" + str(strippedLaneIndex) + "_" + str(CountOfBusOnAllLanes) + "_" + str(CountOfPassengersOnAllLanes) + "_" + str(lane_qualifier)
             # lineList.append(text)
             feature_array = np.array([timeOftheDay/params.timeSlotForDayDivider,CountOfBusOnAllLanes,CountOfPassengersOnAllLanes,lane_qualifier,params.dayOfTheWeek])
             TwoDFeatureArray[nodeIndex] = feature_array
             nodeIndex+=1
             # print(text)          
-            tempLaneIndex1 = strippedLaneIndex + '_1'
-            tempLaneIndex2 = strippedLaneIndex + '_2'
+            tempLaneIndex1 = f'{edge_id}_1'
+            tempLaneIndex2 = f'{edge_id}_2'
+            bus_lane_id = f'{edge_id}_0'
             if lane_qualifier == 0:
-                traci.lane.setAllowed(candidate_lane,all_traffic)
+                traci.lane.setAllowed(bus_lane_id,all_traffic) # empty list means all vehicles are allowed.
                 # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
                 traci.lane.setAllowed(tempLaneIndex2,all_traffic)
             elif lane_qualifier == 1:
-                traci.lane.setDisallowed(candidate_lane,all_traffic)
-                traci.lane.setAllowed(candidate_lane,'bus')
+                # traci.lane.setDisallowed(bus_lane_id,all_traffic) # redundant with setAllowed?
+                traci.lane.setAllowed(bus_lane_id,'bus')
                 # traci.lane.setDisallowed(tempLaneIndex1,'bus')
                 traci.lane.setDisallowed(tempLaneIndex2,'bus')
             else:
-                IBL_lanes.append(candidate_lane)
+                IBL_lanes.append(bus_lane_id)
         # for line in lineList:
         #     file.write(line + ",")
         # file.write('\n')
@@ -181,13 +172,13 @@ while stepCounter < daySeconds:
     if stepCounter % params.intermittentPeriods == 0:
         # intermittentPermissionToggleFunction()
         for IBL_lane in IBL_lanes:     
-            strippedLaneIndex = IBL_lane.split('_')[0]
-            tempLaneIndex1 = strippedLaneIndex + '_1'
-            tempLaneIndex2 = strippedLaneIndex + '_2'            
-            if 'bus' in traci.lane.getAllowed(IBL_lane) and 'passenger' in traci.lane.getAllowed(IBL_lane):
+            edge_id = IBL_lane.split('_')[0]
+            tempLaneIndex1 = f'{edge_id}_1'
+            tempLaneIndex2 = f'{edge_id}_2'
+            allowed_vehicles = traci.lane.getAllowed(IBL_lane)
+            if 'bus' in allowed_vehicles and 'passenger' in allowed_vehicles:
                 # print(traci.lane.getAllowed(IBL_lane))
                 # print("All traffic")
-                traci.lane.setDisallowed(IBL_lane,all_traffic)
                 traci.lane.setAllowed(IBL_lane,'bus')                      
                 # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
                 traci.lane.setAllowed(tempLaneIndex2,all_traffic)
@@ -197,9 +188,8 @@ while stepCounter < daySeconds:
                 # print("Only Bus")                               
                 traci.lane.setAllowed(IBL_lane,all_traffic)
                 # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
-                traci.lane.setAllowed(tempLaneIndex2,all_traffic)            
+                traci.lane.setAllowed(tempLaneIndex2,all_traffic)
     stepCounter +=1 
-# file.close()      
 traci.close()
 
 #convert node and edge data from csv to .npy format

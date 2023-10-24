@@ -5,3 +5,6 @@ __pycache__
 debug*.xml
 act.stat.xml
 test.xml
+*.add.xml
+processed_trips.xml
+Routes.json
