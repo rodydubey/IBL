@@ -7,7 +7,7 @@
 -->
 
 <city>
-	<general inhabitants="5000" households="2000" childrenAgeLimit="19" retirementAgeLimit="66" carRate="0.95" unemploymentRate="0.05" footDistanceLimit="250" incomingTraffic="100" outgoingTraffic="400" laborDemand="1.05"/>
+	<general inhabitants="200" households="2000" childrenAgeLimit="19" retirementAgeLimit="66" carRate="0.95" unemploymentRate="0.05" footDistanceLimit="250" incomingTraffic="100" outgoingTraffic="400" laborDemand="1.05"/>
 	<parameters carPreference="0.90" meanTimePerKmInCity="6" freeTimeActivityRate="0.15" uniformRandomTraffic="0.20" departureVariation="300" />
 	
 	<population>
@@ -16,15 +16,27 @@
 		<bracket beginAge="60" endAge="90" peopleNbr="30" />
 	</population>
 	
-	<workHours>
+	<!-- <workHours>
 		<opening hour="30600" proportion="0.30" />
 		<opening hour="32400" proportion="0.70" />
 		<closing hour="43200" proportion="0.20" />
 		<closing hour="63000" proportion="0.20" />
 		<closing hour="64800" proportion="0.60" />
 	</workHours>
-	
-
+	 -->
+        <workHours>
+            <opening hour="28800" proportion="0.20" /> <!--8:00am-->
+            <opening hour="30600" proportion="0.20" /> <!--8:30am-->
+            <opening hour="32400" proportion="0.40" /> <!--9:00am-->
+            <opening hour="34200" proportion="0.20" /> <!--9:30am-->
+            <closing hour="43200" proportion="0.10" /> <!--12:00pm-->
+            <closing hour="50400" proportion="0.25" /> <!--14:00pm-->
+            <opening hour="52200" proportion="0.15" /> <!--14:30pm-->
+            <opening hour="54000" proportion="0.10" /> <!--15:00pm-->
+            <closing hour="63000" proportion="0.20" /> <!--17:30pm-->
+            <closing hour="64800" proportion="0.40" /> <!--18:00am-->
+            <closing hour="68400" proportion="0.30" /> <!--19:00am-->
+        </workHours>
 	
 	<cityGates>
 		<entrance edge="-840" pos="1" incoming="0.05" outgoing="0.05" />
