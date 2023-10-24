@@ -15,16 +15,12 @@ networkFileName = '../sumo_config/SimpleRandom.net.xml'
 
 # traci.start([sumoBinary] + sumoCMD)
 step = 0
-edge_list = [] # list of all edges
 
 network = net.readNet(networkFileName)
 
-nEdges = [e.getID() for e in network.getEdges()]
+edge_list = [e.getID() for e in network.getEdges(withInternal=False)] # list of all edges excluding internal links
 
 # Write additional file with loop detectors if the file does not exist
-for edge_id in nEdges:   
-    if edge_id.find("_") == -1: # filters edges from internal edges
-        edge_list.append(edge_id)
 
 ###uncomment below function everytime you need to generate new Loop  detector additional file
 loopDetector(network, edge_list, loopDetectorFileName)
