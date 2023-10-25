@@ -169,6 +169,17 @@ while stepCounter < daySeconds:
                 traci.lane.setAllowed(candidate_lane,'bus')
                 # traci.lane.setDisallowed(tempLaneIndex1,'bus')
                 traci.lane.setDisallowed(tempLaneIndex2,'bus')
+                #Start: Change Lane for all cars on IBL_Lane
+                #find all vehicle in a lane
+                allVehicles = traci.lane.getLastStepVehicleIDs(candidate_lane)
+                carList = []
+                if len(allVehicles) > 1:
+                    for vehID in allVehicles:
+                        if vehID.find('bl') == -1:
+                            carList.append(vehID)
+                            traci.vehicle.changeLane(vehID, 1, 5)
+                #End: Change Lane for all cars on IBL_Lane      
+
             else:
                 IBL_lanes.append(candidate_lane)
         # for line in lineList:
@@ -188,7 +199,20 @@ while stepCounter < daySeconds:
                 # print(traci.lane.getAllowed(IBL_lane))
                 # print("All traffic")
                 traci.lane.setDisallowed(IBL_lane,all_traffic)
-                traci.lane.setAllowed(IBL_lane,'bus')                      
+                traci.lane.setAllowed(IBL_lane,'bus')   
+
+                #Start: Change Lane for all cars on IBL_Lane
+                #find all vehicle in a lane
+                allVehicles = traci.lane.getLastStepVehicleIDs(IBL_lane)
+                carList = []
+                if len(allVehicles) > 1:
+                    for vehID in allVehicles:
+                        if vehID.find('bl') == -1:
+                            carList.append(vehID)
+                            traci.vehicle.changeLane(vehID, 1,'5')
+
+                #End: Change Lane for all cars on IBL_Lane      
+                #                 
                 # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
                 traci.lane.setAllowed(tempLaneIndex2,all_traffic)
                 # traci.lane.setDisallowed(tempLaneIndex1,'bus')
