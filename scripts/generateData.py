@@ -20,8 +20,8 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--with-gui", action='store_true',
-                        help="run with the SUMO gui")
+    parser.add_argument("--no-gui", action='store_true',
+                        help="run without the SUMO gui")
 
     return parser.parse_args()
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     """
     Configure various parameters of SUMO
     """
-    withGUI = args.with_gui
+    withGUI = not args.no_gui
 
     if not withGUI:
         try:
