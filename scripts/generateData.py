@@ -39,9 +39,12 @@ if __name__ == "__main__":
         except:
             pass
 
-    sumoCMD = ["--ignore-route-errors",
+    sumoCMD = ["--time-to-teleport.disconnected",str(40),"--ignore-route-errors",
                             "--collision.check-junctions", str(True),"--collision.mingap-factor","0","--collision.action", "warn",
-                            "--seed", "42","--default.carfollowmodel", "IDM","--statistic-output","output.xml"]
+                            "--seed", "42", "-W","--default.carfollowmodel", "IDM","--no-step-log","--statistic-output","output.xml"]
+    # sumoCMD = ["--ignore-route-errors",
+    #                         "--collision.check-junctions", str(True),"--collision.mingap-factor","0","--collision.action", "warn",
+    #                         "--seed", "42","--default.carfollowmodel", "IDM","--statistic-output","output.xml"]
 
     if withGUI:
         sumoBinary = checkBinary('sumo-gui')
