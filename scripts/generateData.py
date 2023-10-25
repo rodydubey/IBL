@@ -168,9 +168,9 @@ if __name__ == "__main__":
                         carList = []
                         if len(allVehicles) > 1:
                             for vehID in allVehicles:
-                                if vehID.find('bl') == -1:
+                                if vehID.find('bl') == -1: # not a bus
                                     carList.append(vehID)
-                                    traci.vehicle.changeLane(vehID, 1, "5")
+                                    traci.vehicle.changeLane(vehID, 1, str(params.laneChangeAttemptDuration))
                         #End: Change Lane for all cars on IBL_Lane      
 
                     else:
@@ -201,9 +201,9 @@ if __name__ == "__main__":
                     carList = []
                     if len(allVehicles) > 1:
                         for vehID in allVehicles:
-                            if vehID.find('bl') == -1:
+                            if vehID.find('bl') == -1: # not a bus
                                 carList.append(vehID)
-                                traci.vehicle.changeLane(vehID, 1,'5')
+                                traci.vehicle.changeLane(vehID, 1, str(params.laneChangeAttemptDuration))
 
                     #End: Change Lane for all cars on IBL_Lane      
                     #                 

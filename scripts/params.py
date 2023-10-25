@@ -4,3 +4,4 @@ intermittentPeriods = 60 # secons (1 min) For IBL. We randomly change IBL perimi
 # intermittentPeriods = 5
 timeSlotForDayDivider = int(86400/detectorMeasurementInterval)
 dayOfTheWeek = 1 #(Monday)
+laneChangeAttemptDuration = intermittentPeriods # car will attempt to change lanes, triggers when lane is bus restricted
