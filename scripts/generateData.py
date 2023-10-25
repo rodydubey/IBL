@@ -25,12 +25,25 @@ def parse_args():
 
     return parser.parse_args()
 
-"""
-Configure various parameters of SUMO
-"""
+def forceChangeLane(bus_lane_id):
+    #Start: Change Lane for all cars on IBL_Lane
+    #find all vehicles on a bus lane
+    allVehicles = traci.lane.getLastStepVehicleIDs(bus_lane_id)
+    if len(allVehicles) > 1:
+        for vehID in allVehicles:
+            if vehID.find('bl') == -1: # not a bus
+                traci.vehicle.changeLane(vehID, 1, params.laneChangeAttemptDuration)
+    #End: Change Lane for all cars on IBL_Lane      
+
+
+
 
 if __name__ == "__main__":
     args = parse_args()
+
+    """
+    Configure various parameters of SUMO
+    """
     withGUI = args.with_gui
 
     if not withGUI:
@@ -165,17 +178,7 @@ if __name__ == "__main__":
                         traci.lane.setAllowed(bus_lane_id,'bus')
                         # traci.lane.setDisallowed(tempLaneIndex1,'bus')
                         traci.lane.setDisallowed(tempLaneIndex2,'bus')
-                        #Start: Change Lane for all cars on IBL_Lane
-                        #find all vehicle in a lane
-                        allVehicles = traci.lane.getLastStepVehicleIDs(bus_lane_id)
-                        carList = []
-                        if len(allVehicles) > 1:
-                            for vehID in allVehicles:
-                                if vehID.find('bl') == -1: # not a bus
-                                    carList.append(vehID)
-                                    traci.vehicle.changeLane(vehID, 1, params.laneChangeAttemptDuration)
-                        #End: Change Lane for all cars on IBL_Lane      
-
+                        forceChangeLane(bus_lane_id)
                     else:
                         IBL_lanes.append(bus_lane_id)
             # for line in lineList:
@@ -198,18 +201,8 @@ if __name__ == "__main__":
                     # traci.lane.setDisallowed(IBL_lane,all_traffic)
                     traci.lane.setAllowed(IBL_lane,'bus')   
 
-                    #Start: Change Lane for all cars on IBL_Lane
-                    #find all vehicle in a lane
-                    allVehicles = traci.lane.getLastStepVehicleIDs(IBL_lane)
-                    carList = []
-                    if len(allVehicles) > 1:
-                        for vehID in allVehicles:
-                            if vehID.find('bl') == -1: # not a bus
-                                carList.append(vehID)
-                                traci.vehicle.changeLane(vehID, 1, params.laneChangeAttemptDuration)
+                    forceChangeLane(IBL_lane)
 
-                    #End: Change Lane for all cars on IBL_Lane      
-                    #                 
                     # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
                     traci.lane.setAllowed(tempLaneIndex2,all_traffic)
                     # traci.lane.setDisallowed(tempLaneIndex1,'bus')
@@ -219,7 +212,7 @@ if __name__ == "__main__":
                     traci.lane.setAllowed(IBL_lane,all_traffic)
                     # traci.lane.setAllowed(tempLaneIndex1,all_traffic)
                     traci.lane.setAllowed(tempLaneIndex2,all_traffic)
-        stepCounter += 60
+        stepCounter += params.intermittentPeriods
     traci.close()
 
     #convert node and edge data from csv to .npy format
