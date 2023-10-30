@@ -5,6 +5,7 @@ from sumolib import net, xml
 from random import randrange
 import json
 import math
+import random
 # sumo things - we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -25,6 +26,7 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def forceChangeLane(bus_lane_id):
     #Start: Change Lane for all cars on IBL_Lane
     #find all vehicles on a bus lane
@@ -36,25 +38,10 @@ def forceChangeLane(bus_lane_id):
     #End: Change Lane for all cars on IBL_Lane      
 
 
-
-
-if __name__ == "__main__":
-    args = parse_args()
-
-    """
-    Configure various parameters of SUMO
-    """
-    withGUI = not args.no_gui
-
-    if not withGUI:
-        try:
-            import libsumo as traci
-        except:
-            pass
-
+def generateData(seed,loopDetectorFileName,networkFileName,busStopsFileName,routesJsonFileName,withGUI):
     sumoCMD = ["--time-to-teleport.disconnected",str(40),"--ignore-route-errors",
                             "--collision.check-junctions", str(True),"--collision.mingap-factor","0","--collision.action", "warn",
-                            "--seed", "42", "-W","--default.carfollowmodel", "IDM","--no-step-log","--statistic-output","output.xml"]
+                            "--seed", str(seed), "-W","--default.carfollowmodel", "IDM","--no-step-log","--statistic-output","output.xml"]
     # sumoCMD = ["--ignore-route-errors",
     #                         "--collision.check-junctions", str(True),"--collision.mingap-factor","0","--collision.action", "warn",
     #                         "--seed", "42","--default.carfollowmodel", "IDM","--statistic-output","output.xml"]
@@ -69,13 +56,10 @@ if __name__ == "__main__":
     sumoConfig = "../sumo_config/SimpleRandom.sumocfg"
     sumoCMD = ["-c", sumoConfig] + sumoCMD
 
-    loopDetectorFileName = "../sumo_config/loopDetectors.add.xml"
-    networkFileName = '../sumo_config/SimpleRandom.net.xml'
-    busStopsFileName = '../sumo_config/busStop.add.xml'
-    routesJsonFileName = '../sumo_config/Routes.json'
 
+    random.seed(seed)
     traci.start([sumoBinary] + sumoCMD)
-    daySeconds = 86400
+    daySeconds = 86400 #86400
     stepCounter = 0
     candidate_bus_lanes = [] # list of all lanes that can be adapted to bus lanes
     network = net.readNet(networkFileName)
@@ -93,40 +77,13 @@ if __name__ == "__main__":
     # print(std_dev)
     for busStop in xml.parse(busStopsFileName, 'busStop'):
         candidate_bus_lanes.append(busStop.lane)
-    # print(math.exp(-math.sqrt(4*100/mean)))
-    #Write weighted Adjacency matrix
-    with open('../dataset/adj.csv','w') as adj_file:
-        for edge_id in edge_list:
-            text=''
-            for edge_id2 in edge_list:
-                    #check if edge_id is connected to edge_id2. If yes compute degree/edge length
-                # if edge_id == edge_id2:
-                #     text = text + str(1) + ','
-                # else:
-                nextEdges = network.getEdge(edge_id).getOutgoing()
-                listOfEdges = [li.getID() for li in nextEdges]
-                degree = len(listOfEdges)
-                edgeLength = network.getEdge(edge_id).getLength()
-                flag = False
-                for nex in listOfEdges:
-                    if edge_id2 in nex:
-                        flag = True                
-                if flag:
-                    weight = math.exp(-np.sqrt(degree*edgeLength/np.square(mean)))
-                    text = text + str(weight) + ','
-                else:
-                    text = text + str(0) + ','
-            # print(text)
-            adj_file.write(text)
-            adj_file.write('\n')  
-    adj_file.close()
+ 
     
     all_traffic = ['pedestrian','private', 'emergency', 'passenger','authority', 'army', 'vip', 'hov', 'taxi', 'bus', 'coach', 'delivery', 'truck', 'trailer', 'motorcycle', 'moped', 'evehicle', 'tram', 'rail_urban', 'rail', 'rail_electric', 'rail_fast', 'ship', 'custom1', 'custom2']
 
     timeOftheDay = 0
     TwoDFeatureArray = np.zeros((len(edges),5))
-    NodeFeatureArray = np.zeros((params.timeSlotForDayDivider,len(edges),5))
-    print(NodeFeatureArray.shape)
+    NodeFeatureArray_Temp = np.zeros((params.timeSlotForDayDivider,len(edges),5))
 
     # with open('../dataset/NodeFeatures.csv','w') as file:
     while stepCounter < daySeconds:
@@ -163,6 +120,7 @@ if __name__ == "__main__":
                 # lineList.append(text)
                 feature_array = np.array([timeOftheDay/params.timeSlotForDayDivider,CountOfBusOnAllLanes,CountOfPassengersOnAllLanes,lane_qualifier,params.dayOfTheWeek])
                 TwoDFeatureArray[nodeIndex] = feature_array
+                
                 # print(text)          
 
                 if f'{edge_id}_0' in candidate_bus_lanes: # only change permissions for candidate bus lanes
@@ -184,7 +142,7 @@ if __name__ == "__main__":
             # for line in lineList:
             #     file.write(line + ",")
             # file.write('\n')
-            NodeFeatureArray[timeOftheDay-1][:][:] = TwoDFeatureArray
+            NodeFeatureArray_Temp[timeOftheDay-1][:][:] = TwoDFeatureArray
             # print(NodeFeatureArray)
         #### USE A FLAG FOR INTERMITTENT ####
         # isIntermittent = True
@@ -214,12 +172,95 @@ if __name__ == "__main__":
                     traci.lane.setAllowed(tempLaneIndex2,all_traffic)
         stepCounter += params.intermittentPeriods
     traci.close()
+    # print(NodeFeatureArray_Temp)
+    return NodeFeatureArray_Temp
 
-    #convert node and edge data from csv to .npy format
-    adj_data = np.genfromtxt('../dataset/adj.csv', delimiter=',')
-    np.save('../dataset/adj.npy', adj_data)
-    np.save('../dataset/nodeFeatures.npy',NodeFeatureArray)
+
     #timestamp per day = 24*4 (96)if the data is recorded every 15 mins
     # 96*numberOfNodes*NumberOfFeatures Features( time,number of cars, number of buses, lane_type,weekday) time = counterID/96, weekday = weekday/7
     # 288*280*8
+
+if __name__ == "__main__":
+    args = parse_args()
+
+    """
+    Configure various parameters of SUMO
+    """
+    withGUI = not args.no_gui
+
+    if not withGUI:
+        try:
+            import libsumo as traci
+        except:
+            pass
+
+    loopDetectorFileName = "../sumo_config/loopDetectors.add.xml"
+    networkFileName = '../sumo_config/SimpleRandom.net.xml'
+    busStopsFileName = '../sumo_config/busStop.add.xml'
+    routesJsonFileName = '../sumo_config/Routes.json'
+
+    ##WRITE ADJ MATRIX
+    candidate_bus_lanes = [] # list of all lanes that can be adapted to bus lanes
+    network = net.readNet(networkFileName)
+    edges = network.getEdges(withInternal=False)
+    edge_list = [e.getID() for e in edges] # list of all edges excluding internal
+
+    ListOfStreetLength = []
+    for edge_id in edge_list:   
+        edgeLength = network.getEdge(edge_id).getLength()
+        ListOfStreetLength.append(edgeLength)
+
+    #compute Standard Distance and Mean of all edge length (i.e., distance between loop detectors)
+    std_dev = np.std(ListOfStreetLength)
+    mean = np.mean(ListOfStreetLength)
+    # print(std_dev)
+    for busStop in xml.parse(busStopsFileName, 'busStop'):
+        candidate_bus_lanes.append(busStop.lane)
+    # print(math.exp(-math.sqrt(4*100/mean)))
+    #Write weighted Adjacency matrix
+    with open('../dataset/adj_large.csv','w') as adj_file:
+        for edge_id in edge_list:
+            text=''
+            for edge_id2 in edge_list:
+                    #check if edge_id is connected to edge_id2. If yes compute degree/edge length
+                # if edge_id == edge_id2:
+                #     text = text + str(1) + ','
+                # else:
+                nextEdges = network.getEdge(edge_id).getOutgoing()
+                listOfEdges = [li.getID() for li in nextEdges]
+                degree = len(listOfEdges)
+                edgeLength = network.getEdge(edge_id).getLength()
+                flag = False
+                for nex in listOfEdges:
+                    if edge_id2 in nex:
+                        flag = True                
+                if flag:
+                    weight = math.exp(-np.sqrt(degree*edgeLength/np.square(mean)))
+                    text = text + str(weight) + ','
+                else:
+                    text = text + str(0) + ','
+            # print(text)
+            text = text.rstrip(',')
+            adj_file.write(text)
+            adj_file.write('\n')  
+    adj_file.close()
+
+    adj_data = np.genfromtxt('../dataset/adj_large.csv', delimiter=',')
+    # np.save('../dataset/adj_large.npy', adj_data)
+
+    numberOfDays = 10
+    NodeFeatureArray = np.zeros((params.timeSlotForDayDivider*numberOfDays,len(edges),5))
+    print(NodeFeatureArray.shape)
+
+    for i in range(numberOfDays): # Seeds 0 to 9 for weekdays. Seeds 10 to 20 for Weekends
+        seed = i + 10
+        print(seed,numberOfDays)
+        outputArray = generateData(seed,loopDetectorFileName,networkFileName,busStopsFileName,routesJsonFileName,False)
+        
+        NodeFeatureArray = np.vstack((NodeFeatureArray, outputArray))
+        # np.concatenate((NodeFeatureArray, outputArray))
+        # print(NodeFeatureArray)
+            
+    #convert node and edge data from csv to .npy format   
+    np.save('../dataset/node_values_Weekend_1To10.npy',NodeFeatureArray)   
 

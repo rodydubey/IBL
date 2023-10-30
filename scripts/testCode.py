@@ -56,9 +56,19 @@ import matplotlib.pyplot as plt
 # data = np.genfromtxt('..\\dataset\\adj.csv', delimiter=',')
 # np.save('..\\dataset\\adj.npy', data)
 
-node_values = np.load('..\\dataset\\nodeFeatures.npy')
-rrReshaped = node_values.reshape(node_values.shape[0], -1)
-# saving reshaped array to file.
-np.savetxt("test.csv", rrReshaped, delimiter=",")
-print((node_values.shape))
-print(node_values[60, :, :])
+# node_values = np.load('C:\D\SUMO\IBL\dataset\\node_values.npy')
+# print(node_values.shape,node_values[0, 0, :])
+# X = node_values.transpose(1, 2, 0)
+# print(X.shape,X[0, 0, :])
+
+node_values_1 = np.load('C:\D\SUMO\IBL\dataset\\node_values_Weekdays_1To10.npy')
+print(node_values_1.shape)
+#replace nan values with zero in array
+node_values_2 = np.load('C:\D\SUMO\IBL\dataset\\node_values_Weekend_1To10.npy')
+print(node_values_2.shape)
+node_values_1 = np.vstack((node_values_1, node_values_2))
+print(node_values_1.shape)
+np.save('../dataset/node_values_20_Days.npy',node_values_1)  
+# X = node_values.transpose(1, 2, 0)
+# print(X.shape,X[0, 2, :])
+
