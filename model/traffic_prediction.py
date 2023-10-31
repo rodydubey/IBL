@@ -35,13 +35,13 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 model.train()
 
 print("Running training...")
-for epoch in range(500): 
+for epoch in range(100): 
     loss = 0
     step = 0
     for snapshot in train_dataset:
         snapshot = snapshot.to(device)
         # Get model predictions
-        y_hat = model(snapshot.x, snapshot.edge_index)
+        y_hat = model(snapshot.x, snapshot.edge_index, snapshot.edge_weight)
         # Mean squared error
         loss = loss + torch.mean((y_hat-snapshot.y)**2) 
         step += 1
@@ -60,31 +60,32 @@ for epoch in range(500):
 
         # perform the test
         model.eval()
-        loss = 0
-        step = 0
-        horizon = num_timesteps*24
+        with torch.no_grad():
+            loss = 0
+            step = 0
+            horizon = num_timesteps*24
 
-        # Store for analysis
-        predictions = []
-        labels = []
+            # Store for analysis
+            predictions = []
+            labels = []
 
-        for snapshot in test_dataset:
-            snapshot = snapshot.to(device)
-            # Get predictions
-            y_hat = model(snapshot.x, snapshot.edge_index)
-            # Mean squared error
-            loss = loss + torch.mean((y_hat-snapshot.y)**2)
-            # Store for analysis below
-            labels.append(snapshot.y)
-            predictions.append(y_hat)
-            step += 1
-            if step > horizon:
-                break
+            for snapshot in test_dataset:
+                snapshot = snapshot.to(device)
+                # Get predictions
+                y_hat = model(snapshot.x, snapshot.edge_index, snapshot.edge_weight)
+                # Mean squared error
+                loss = loss + torch.mean((y_hat-snapshot.y)**2)
+                # Store for analysis below
+                labels.append(snapshot.y)
+                predictions.append(y_hat)
+                step += 1
+                if step > horizon:
+                    break
 
-        loss = loss / (step+1)
-        loss = loss.item()
-        print("Test MSE: {:.4f}".format(loss))
-
+            loss = loss / (step+1)
+            loss = loss.item()
+            print("Test MSE: {:.4f}".format(loss))
+        model.train()
         sensor = 20  
         timestep = 1 
         preds = np.asarray([pred[sensor][timestep].detach().cpu().numpy() for pred in predictions])

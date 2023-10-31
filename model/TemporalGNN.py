@@ -12,12 +12,12 @@ class TemporalGNN(torch.nn.Module):
         # Equals single-shot prediction
         self.linear = torch.nn.Linear(32, periods)
 
-    def forward(self, x, edge_index):
+    def forward(self, x, edge_index, edge_weight):
         """
         x = Node features for T time steps
         edge_index = Graph edge indices
         """
-        h = self.tgnn(x, edge_index)
+        h = self.tgnn(x, edge_index, edge_weight)
         h = F.relu(h)
         h = self.linear(h)
         return h
